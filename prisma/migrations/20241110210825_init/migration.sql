@@ -4,7 +4,7 @@ CREATE TABLE "User" (
     "email" TEXT NOT NULL,
     "isSubscribed" BOOLEAN NOT NULL DEFAULT false,
     "subscriptionEnds" TIMESTAMP(3),
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "createdAt" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("userId")
@@ -14,6 +14,8 @@ CREATE TABLE "User" (
 CREATE TABLE "Todos" (
     "todoId" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "compeleted" BOOLEAN NOT NULL DEFAULT false,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "createdAt" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 

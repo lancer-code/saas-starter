@@ -14,19 +14,21 @@ datasource db {
 }
 
 model User {
-  userId       String   @id 
-  email        String   @unique
-  isSubscribed Boolean  @default(false)
+  userId           String    @id
+  email            String    @unique
+  isSubscribed     Boolean   @default(false)
   subscriptionEnds DateTime?
-  todos        Todos[]
-  updatedAt    DateTime @updatedAt @default(now())
-  createdAt    DateTime @default(now()) @db.Timestamp(6)
+  todos            Todos[]
+  updatedAt        DateTime  @default(now()) @updatedAt
+  createdAt        DateTime  @default(now()) @db.Timestamp(6)
 }
 
 model Todos {
-  todoId    String   @id @default(uuid())
-  user      User     @relation(fields: [userId], references: [userId])
-  userId    String   
-  updatedAt DateTime @updatedAt
-  createdAt DateTime @default(now()) @db.Timestamp(6)
+  todoId     String   @id @default(uuid())
+  user       User     @relation(fields: [userId], references: [userId])
+  userId     String
+  title      String
+  compeleted Boolean  @default(false)
+  updatedAt  DateTime @updatedAt
+  createdAt  DateTime @default(now()) @db.Timestamp(6)
 }

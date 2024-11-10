@@ -1,10 +1,10 @@
 import { auth } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import prisma from "../../../../lib/prisma";
 import exp from "constants";
 import { use } from "react";
 
-export default async function POST(request: NextResponse) {
+export default async function POST(request: NextRequest) {
   const { userId } = auth();
 
   if (!userId) {
@@ -49,7 +49,7 @@ export default async function POST(request: NextResponse) {
 
 
 
-export async function GET(request:NextResponse) {
+export async function GET(request:NextRequest) {
 
     const {userId} = auth()
 
