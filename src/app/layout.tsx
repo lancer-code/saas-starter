@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
-
+import Navbar from "@/components/Navbar";
 
 
 export const metadata: Metadata = {
@@ -16,15 +15,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
-
-    <html lang="en">
-      <body
-        className={` antialiased`}
-        >
-        {children}
-      </body>
-    </html>
-        </ClerkProvider>
+    <ClerkProvider dynamic>
+      <html lang="en">
+        <body className={` antialiased`}>
+          <Navbar />
+          {children}
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

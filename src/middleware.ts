@@ -1,7 +1,7 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
-const isProtectedRoute = createRouteMatcher(["/", "/forum(.*)"]);
+const isProtectedRoute = createRouteMatcher([]);
 
 export default clerkMiddleware(async (auth, req) => {
   if (isProtectedRoute(req)) {
@@ -13,8 +13,8 @@ export default clerkMiddleware(async (auth, req) => {
       role: "admin",
     });
 
-    if (isAdmin && req.nextUrl.pathname != "/dashboard") {
-      return NextResponse.redirect(new URL("/dashboard", req.url));
+    if (isAdmin && req.nextUrl.pathname != "/admin") {
+      return NextResponse.redirect(new URL("/admin", req.url));
     }
   }
 });
