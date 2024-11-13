@@ -4,7 +4,7 @@ import prisma from "../../../../lib/prisma";
 import exp from "constants";
 import { use } from "react";
 
-export default async function POST(request: NextRequest) {
+export async function POST(request: NextRequest) {
   const { userId } = auth();
 
   if (!userId) {

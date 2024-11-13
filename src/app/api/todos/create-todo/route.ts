@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "User not found" }, { status: 404 });
       }
   
-      if (!user.isSubscribed && user.todos.length >= 3) {
+      if (!user.isSubscribed && user.todos.length >= 10) {
         return NextResponse.json(
           { error: "Free Users can only create 3 Todos" },
           { status: 403 }

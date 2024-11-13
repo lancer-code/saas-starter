@@ -5,7 +5,7 @@ import prisma from "../../../../../lib/prisma";
 
 let ITEMS_PER_PAGE = 10;
 
-export default async function GET(request: NextRequest) {
+export async function GET(request: NextRequest) {
   const { userId } = auth();
 
   if (!userId) {
@@ -55,4 +55,5 @@ export default async function GET(request: NextRequest) {
     );
   }
 }
+
 
