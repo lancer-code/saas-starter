@@ -3,14 +3,23 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "../../../../../lib/prisma";
 
 export async function POST(request: NextRequest) {
-    const { userId } = auth();
-  
+
+
+  if (request.method !== 'POST') {
+    return NextResponse.json({ 
+      error: "Method not allowed" 
+    }, { status: 405 });
+  }
+
+    const {userId}  = await auth();
+    
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-  
+    
     const { title } = await request.json();
-  
+    
+    console.log("Auth Chek Add", userId, title)
     try {
       const user = await prisma.user.findUnique({
         where: {
@@ -22,7 +31,7 @@ export async function POST(request: NextRequest) {
       });
   
       if (!user) {
-        return NextResponse.json({ error: "User not found" }, { status: 404 });
+        return NextResponse.json({ error: "User not found" }, { status: 401 });
       }
   
       if (!user.isSubscribed && user.todos.length >= 10) {

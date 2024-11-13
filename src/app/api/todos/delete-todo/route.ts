@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "../../../../../lib/prisma";
 
 export async function POST(request: NextRequest) {
-    const { userId } = auth();
+    const {userId}  = await auth();
     const {todoId} = await request.json()
   
     if (!userId) {

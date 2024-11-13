@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "../ui/textarea";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import axios from "axios";
 import { useToast } from "@/hooks/use-toast";
@@ -19,8 +19,11 @@ export default function AiAddTodo() {
   const { toast } = useToast();
   const [inputPrompt, setinputPrompt] = useLocalStorage("input-prompt", "");
   const [generateTodos, setgeneratedTodos] = useState([]);
+  const [isOpen, setIsOpen] = useState(false);
 
   const GenerateTodos = useCallback(async () => {
+    if (!Prompt) return;
+
     try {
       setisLoading(true);
       const res = await axios.post("/api/todos/generate-todos", {
@@ -32,6 +35,12 @@ export default function AiAddTodo() {
       }
 
       setgeneratedTodos(res.data.todos);
+      await saveGeneratedTodos();
+      setIsOpen(true);
+
+      setTimeout(() => {
+        setIsOpen(false);
+      }, 1000);
 
       return toast({
         title: "Success",
@@ -40,6 +49,7 @@ export default function AiAddTodo() {
       });
     } catch (error) {
       console.log("GenerateTodos", error);
+
       toast({
         title: "Something went wrong",
         description: "Failed to Generate, Please try again later",
@@ -50,15 +60,18 @@ export default function AiAddTodo() {
     }
   }, [Prompt]);
 
-  const saveGeneratedTodos= useCallback(()=>{
-        try {
-          const res = axios.post('api/todos/generate-todos', generateTodos)
-        } catch (error) {
-          
-        }
-  },[generateTodos])
+  const saveGeneratedTodos = useCallback(async () => {
+    try {
+      const res = await axios.post("api/todos/generate-todos", generateTodos);
+    } catch (error) {}
+  }, [generateTodos]);
+
+  useEffect(() => {
+    setPrompt(inputPrompt);
+  }, []);
+
   return (
-    <Dialog defaultOpen={false}>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button
           className="w-12 h-12 text-[18px] md:w-16  rounded-full 
@@ -99,6 +112,7 @@ export default function AiAddTodo() {
           <div className="w-full space-y-2">
             <Label htmlFor="prompt">Write your Prompt</Label>
             <Textarea
+              required
               defaultValue={inputPrompt}
               disabled={isLoading}
               onChange={(e) => {
@@ -137,7 +151,7 @@ export default function AiAddTodo() {
               type="submit"
             >
               {isLoading ? (
-                <Loader2 className="spin-in ease-in" />
+                <Loader2 className=" ease-in animate-spin" />
               ) : (
                 "Create Todos"
               )}

@@ -6,7 +6,9 @@ import prisma from "../../../../../lib/prisma";
 let ITEMS_PER_PAGE = 10;
 
 export async function GET(request: NextRequest) {
-  const { userId } = auth();
+  const {userId}  = await auth();
+
+  
 
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -28,8 +30,6 @@ export async function GET(request: NextRequest) {
       orderBy: {
         createdAt: "desc",
       },
-      take: ITEMS_PER_PAGE,
-      skip: (Number(page) - 1) * ITEMS_PER_PAGE,
     });
 
     const totalTodos = await prisma.todos.count({
@@ -42,10 +42,31 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    const totalPages = Math.ceil(totalTodos / ITEMS_PER_PAGE);
+    const totalTodosCompleted = await prisma.todos.count({
+      where: {
+        userId: userId,
+        title: {
+          contains: search,
+          mode: "insensitive",
+        },
+      },
+    });
+    const totalTodosRemaining = await prisma.todos.count({
+      where: {
+        userId: userId,
+        title: {
+          contains: search,
+          mode: "insensitive",
+        },
+        compeleted: {
+          equals: false, 
+        },
+        },
+      },
+    );
 
     return NextResponse.json(
-      { todos, totalPages, currentPage: page },
+      { todos, totalTodos, totalTodosCompleted, totalTodosRemaining },
       { status: 200 }
     );
   } catch (error) {
