@@ -4,13 +4,13 @@ import prisma from "../../../../../lib/prisma";
 
 export async function POST(request: NextRequest) {
     const {userId}  = await auth();
-    const {todoId} = await request.json()
-  
+    
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-  
-    const { id } = await request.json();
+    
+    const {todoId} = await request.json()
+
   
     try {
       const todo = await prisma.todos.delete({

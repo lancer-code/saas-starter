@@ -39,6 +39,7 @@ export async function GET(request: NextRequest) {
           contains: search,
           mode: "insensitive",
         },
+        
       },
     });
 
@@ -48,6 +49,9 @@ export async function GET(request: NextRequest) {
         title: {
           contains: search,
           mode: "insensitive",
+        },
+        compeleted: {
+          equals: true,
         },
       },
     });

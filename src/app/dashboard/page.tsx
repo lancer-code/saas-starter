@@ -8,6 +8,7 @@ import { useAuth } from "@clerk/nextjs";
 import axios from "axios";
 
 import React, { useCallback, useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
 
 function Dashboard() {
   const { userId } = useAuth();
@@ -24,34 +25,40 @@ function Dashboard() {
   const [RemainingTodos, setRemainingTodos] = useState(0);
   const [CompletedTodos, setCompletedTodos] = useState(0);
 
-  const CompletedTodoAction = useCallback(async (todoId: string) => {
-    try {
-      setRerender(true);
-      const res = await axios.post("/api/todos/completed", { todoId });
-      if (!res.ok) {
-        throw new Error();
+  const CompletedTodoAction = useCallback(
+    async (todoId: string) => {
+      try {
+        setRerender(true);
+        const res = await axios.post("/api/todos/completed", { todoId });
+        if (res.status != 200) {
+          throw new Error();
+        }
+      } catch (error) {
+        console.log("CompletedTodo", error);
+      } finally {
+        setRerender(false);
       }
-    } catch (error) {
-      console.log("CompletedTodo", error);
-    } finally {
-      setRerender(false);
-    }
-  }, [Todos]);
+    },
+    []
+  );
 
-  const DeleteTodoAction = useCallback(async (todoId: string) => {
-    try {
-      setRerender(true);
-      const res = await axios.post("/api/todos/delete-todo", { todoId });
-      if (!res.ok) {
-        throw new Error();
+  const DeleteTodoAction = useCallback(
+    async (todoId: string) => {
+      try {
+        setRerender(true);
+        const res = await axios.post("/api/todos/delete-todo", { todoId });
+        if (res.status != 200) {
+          throw new Error();
+        }
+        setTotalTodos(TotalTodos - 1);
+      } catch (error) {
+        console.log("DeleteTodo", error);
+      } finally {
+        setRerender(false);
       }
-      Rerender ? setRerender(false) : setRerender(true);
-    } catch (error) {
-      console.log("DeleteTodo", error);
-    } finally {
-      setRerender(false);
-    }
-  }, [Todos]);
+    },
+    []
+  );
 
   const GetTodos = useCallback(async () => {
     try {
@@ -68,23 +75,26 @@ function Dashboard() {
     } finally {
       setRerender(false);
     }
-  }, [Todos]);
+  }, [newTodo]);
 
   const AddTodo = useCallback(async () => {
     try {
       setRerender(true);
-      const res = await axios.post('/api/todos/add-todo', {
+      const res = await axios.post("/api/todos/add-todo", {
         title: newTodo,
       });
-      if (!res.ok) {
+      if (res.status != 200) {
         throw new Error();
       }
+      setTotalTodos(TotalTodos + 1);
+      setNewTodo("");
     } catch (error) {
       console.log("AddTodo", error);
     } finally {
       setRerender(false);
+      setNewTodo("");
     }
-  }, [Todos]);
+  }, [newTodo]);
 
   const SearchTodos = () => {
     try {
@@ -92,12 +102,12 @@ function Dashboard() {
     } catch (error) {}
   };
 
-  // const getTodos = useDebounceCallback(GetTodos, 300);
+  const getTodos = useDebounceCallback(GetTodos, 300);
 
-  // useEffect(() => {
-  //   GetTodos();
-  //   return () => {};
-  // }, [Rerender, Todos]);
+  useEffect(() => {
+    GetTodos()
+    console.log("UDe effect")
+  }, [TotalTodos]);
 
   return (
     <>
@@ -121,9 +131,10 @@ function Dashboard() {
           <div className="w-96 mx-auto md:w-[600px] lg:w-[700px]">
             <div className="flex items-center rounded-lg gap-3 shadow-md bg-white justify-center px-5 py-10">
               <Input
+                value={newTodo}
                 onChange={(e) => {
                   setNewTodo(e.target.value);
-                  GetTodos()
+                  getTodos()
                 }}
                 placeholder="Search Todos"
                 className=" pl-7 text-lg h-16 rounded-full"
@@ -138,16 +149,20 @@ function Dashboard() {
               <AiAddTodo />
             </div>
 
-            <div className="w-96 shadow-md mx-auto md:w-[600px] lg:w-[700px] mt-9 rounded-md bg-white px-5 py-10 overflow-y-auto max-h-[600px]">
+            <div className="w-96 shadow-md mx-auto md:w-[600px] lg:w-[700px] mt-9 h-[500px] rounded-md bg-white px-5 py-10 overflow-y-auto max-h-[600px]">
               <div className="flex justify-between">
                 <p className="text-[18px] font-medium">Total: {TotalTodos}</p>
-                <p className="text-[18px] font-medium">Completed: {CompletedTodos}</p>
-                <p className="text-[18px] font-medium">Remaining: {RemainingTodos}</p>
+                <p className="text-[18px] font-medium">
+                  Completed: {CompletedTodos}
+                </p>
+                <p className="text-[18px] font-medium">
+                  Remaining: {RemainingTodos}
+                </p>
               </div>
 
               {/* Todos items list will be shown here */}
 
-              <div className="flex justify-center mt-8 items-center flex-col w-full max-w-[850px] mx-auto gap-3">
+             {Rerender ? <div className="flex flex-col justify-center items-center h-[200px]"><Loader2 className="animate-spin ease-in"/></div> :(<div className="flex justify-center mt-8 items-center flex-col w-full max-w-[850px]  mx-auto gap-3">
                 {Todos.map((todo) => (
                   <div
                     key={todo.todoId}
@@ -181,13 +196,16 @@ function Dashboard() {
                           }}
                           todoId={todo.todoId}
                           title={todo.title}
-                          DeleteFun={() => DeleteTodoAction(todo.todoId)}
+                          DeleteFun={() => {
+                            DeleteTodoAction(todo.todoId);
+                          }}
                         />
                       </div>
                     </div>
                   </div>
                 ))}
-              </div>
+              </div>)
+}
             </div>
           </div>
         </div>

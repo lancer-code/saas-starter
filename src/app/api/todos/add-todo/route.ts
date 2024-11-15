@@ -4,13 +4,6 @@ import prisma from "../../../../../lib/prisma";
 
 export async function POST(request: NextRequest) {
 
-
-  if (request.method !== 'POST') {
-    return NextResponse.json({ 
-      error: "Method not allowed" 
-    }, { status: 405 });
-  }
-
     const {userId}  = await auth();
     
     if (!userId) {
@@ -36,7 +29,7 @@ export async function POST(request: NextRequest) {
   
       if (!user.isSubscribed && user.todos.length >= 10) {
         return NextResponse.json(
-          { error: "Free Users can only create 3 Todos" },
+          { error: "Free Users can only create 10 Todos" },
           { status: 403 }
         );
       }
