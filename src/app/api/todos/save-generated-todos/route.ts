@@ -9,18 +9,18 @@ export async function POST(request: NextRequest) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  const { generatedTodo } = await request.json();
+  const { generatedTodos } = await request.json();
 
-  const transformedTodos = generatedTodo.map(({ todoId, ...rest }) => ({
-    userId: userId, 
-    ...rest,
-  }));
+  console.log("Save Todos api ", generatedTodos)
+  // const transformedTodos = generatedTodos.map(({ todoId, ai, ...rest }) => ({ 
+  //   ...rest,
+  // }));
 
-  console.log("transformedTodos",transformedTodos);
+  // console.log("transformedTodos",transformedTodos);
 
   try {
     const saveTodos = await prisma.todos.createMany({
-      data: transformedTodos,
+      data: generatedTodos,
     });
 
     if (!saveTodos) {

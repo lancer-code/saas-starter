@@ -40,7 +40,8 @@ function HeroSection() {
 
       return router.push("/dashboard");
     } catch (error) {
-      console.log("GenerateTodos", error);
+      console.log("GenerateTodos", error); 
+      
 
       toast({
         title: "Something went wrong",

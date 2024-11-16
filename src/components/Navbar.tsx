@@ -7,7 +7,7 @@ import React from "react";
 import { Button } from "./ui/button";
 import { usePathname } from "next/navigation";
 
- function Navbar() {
+function Navbar() {
 
     const pathname = usePathname();
     //if the pathname is /sign-in or /sign-up, don't show the footer
@@ -29,7 +29,7 @@ import { usePathname } from "next/navigation";
               <Link href={"/"}>Home</Link>
             </li>
             <li>
-              <Link href={"/"}>Services</Link>
+              <Link href={"/dashboard"}>Dashboard</Link>
             </li>
             <li>
               <Link href={"/"}>About us</Link>

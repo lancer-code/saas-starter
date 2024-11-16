@@ -21,34 +21,34 @@ function Dashboard() {
     "get-todos",
     []
   );
+  const [aiGeneratedTodos, setaiGeneratedTodos] = useLocalStorage("ai-Generated-Todos", false);
 
 
   const CompletedTodoAction = useCallback(async (todoId: string) => {
     try {
-      setisLoading(true);
       const res = await axios.post("/api/todos/completed", { todoId });
       if (res.status != 200) {
         throw new Error();
       }
+      setCompletedTodos(CompletedTodos + 1);
+      setRemainingTodos(RemainingTodos - 1);
     } catch (error) {
       console.log("CompletedTodo", error);
     } finally {
-      setisLoading(false);
+
     }
-  }, []);
+  }, [TotalTodos, CompletedTodos]);
 
   const DeleteTodoAction = useCallback(async (todoId: string) => {
     try {
-      setisLoading(true);
       const res = await axios.post("/api/todos/delete-todo", { todoId });
       if (res.status != 200) {
         throw new Error();
       }
-      setTotalTodos(TotalTodos - 1);
+      setTotalTodos(0);
     } catch (error) {
       console.log("DeleteTodo", error);
     } finally {
-      setisLoading(false);
     }
   }, []);
 
@@ -79,6 +79,7 @@ function Dashboard() {
         throw new Error();
       }
       setTotalTodos(TotalTodos + 1);
+      setRemainingTodos(RemainingTodos + 1);
     } catch (error) {
       console.log("AddTodo", error);
     } finally {
@@ -95,7 +96,7 @@ function Dashboard() {
     return () => {
       removeGetTodos();
     };
-  }, [TotalTodos]);
+  }, [TotalTodos, aiGeneratedTodos]);
 
   return (
     <>

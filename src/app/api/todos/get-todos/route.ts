@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const search = searchParams.get("search") || "";
-  const page = searchParams.get("page") || "1";
+
 
   try {
     const todos = await prisma.todos.findMany({
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
         },
       },
       orderBy: {
-        createdAt: "desc",
+        createdAt: "asc",
       },
     });
 

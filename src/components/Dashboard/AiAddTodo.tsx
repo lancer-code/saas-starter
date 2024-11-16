@@ -18,15 +18,14 @@ export default function AiAddTodo() {
   const [isLoading, setisLoading] = useState(false);
   const { toast } = useToast();
   const [inputPrompt, setinputPrompt] = useLocalStorage("input-prompt", "");
-  const [generatedTodos, setgeneratedTodos] = useState([]);
+  const [aiGeneratedTodos, setaiGeneratedTodos] = useLocalStorage("ai-Generated-Todos", false);
   const [isOpen, setIsOpen] = useState(false);
-  
 
-  const GenerateTodos = useCallback(async () => {
+  const GenerateTodos = async () => {
     if (!inputPrompt) return;
 
     try {
-      console.log(inputPrompt)
+      console.log(inputPrompt);
       setisLoading(true);
       const res = await axios.post("/api/todos/generate-todos", {
         prompt: inputPrompt,
@@ -35,10 +34,8 @@ export default function AiAddTodo() {
       if (res.status != 200) {
         throw new Error();
       }
-
-      setgeneratedTodos(res.data.todos);
-      await saveGeneratedTodos();
-      setIsOpen(false)
+      aiGeneratedTodos ? setaiGeneratedTodos(false) : setaiGeneratedTodos(true)
+      setIsOpen(false);
       return toast({
         title: "Success",
         description: "Todos Generated Successfully",
@@ -55,20 +52,11 @@ export default function AiAddTodo() {
     } finally {
       setisLoading(false);
     }
-  }, [inputPrompt]);
+  };
 
-  const saveGeneratedTodos = useCallback(async () => {
-    try {
-      const res = await axios.post("api/todos/generate-todos", generatedTodos);
-    } catch (error) {}
-  }, [generatedTodos]);
-
-
-
-
-  const handleGenerate = useCallback(async () => {
+  const handleGenerate = async () => {
     await GenerateTodos();
-  }, [])
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
