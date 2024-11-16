@@ -25,6 +25,7 @@ import { Input } from "../ui/input";
 interface TodosOptionsProps {
   CompletedFun: () => void;
   DeleteFun: () => void;
+  EditTodos: () => void;
   todoId: string;
   title: string;
 }
@@ -34,6 +35,7 @@ function TodosOptions({
   DeleteFun,
   todoId,
   title,
+  EditTodos,
 }: TodosOptionsProps) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -77,6 +79,7 @@ function TodosOptions({
         <TodoEditDialog
           todoId={todoId}
           title={title}
+          EditTodos={EditTodos}
           isOpen={isOpen} // Pass the state directly
           onClose={() => setIsOpen(false)} // Pass the function to close
         />

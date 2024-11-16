@@ -21,7 +21,7 @@ function Dashboard() {
     "get-todos",
     []
   );
-  const [Todos, setTodos] = useState([]);
+
 
   const CompletedTodoAction = useCallback(async (todoId: string) => {
     try {
@@ -59,7 +59,6 @@ function Dashboard() {
         `/api/todos/get-todos?search=${newTodo}`
       );
       setTodosList(todosList.data.todos);
-      setTodos(todosList.data.todos);
       setCompletedTodos(todosList.data.totalTodosCompleted);
       setRemainingTodos(todosList.data.totalTodosRemaining);
       setTotalTodos(todosList.data.totalTodos);
@@ -157,7 +156,7 @@ function Dashboard() {
                 </div>
               ) : (
                 <div className="flex justify-center mt-8 items-center flex-col w-full max-w-[850px]  mx-auto gap-3">
-                  {Todos.map((todo) => (
+                  {todosList.map((todo) => (
                     <div
                       key={todo.todoId}
                     className={`h-[75px] flex justify-between items-center w-full px-6 
@@ -188,10 +187,17 @@ function Dashboard() {
                               CompletedTodoAction(todo.todoId);
                               todo.compeleted = true;
                             }}
+
                             todoId={todo.todoId}
                             title={todo.title}
+
                             DeleteFun={() => {
                               DeleteTodoAction(todo.todoId);
+                            }}
+
+                            EditTodos={async() => {
+                             await GetTodos()
+                              //Transfering through three Components
                             }}
                           />
                         </div>

@@ -17,6 +17,7 @@ interface TodoEditDialogProps {
   title: string;
   isOpen: boolean;
   onClose: () => void;
+  EditTodos: () => void;
 }
 
 export default function TodoEditDialog({
@@ -24,6 +25,7 @@ export default function TodoEditDialog({
   title,
   isOpen,
   onClose,
+  EditTodos
 }: TodoEditDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [EdittedTodo, setEdittedTodo] = useState(title);
@@ -37,19 +39,7 @@ export default function TodoEditDialog({
       if (res.status != 200) {
         throw new Error();
       }
-      // if (res.status === 200) {
-      //   // Update the specific todo in the todosList
-      //   const updatedTodos = todosList.map(
-      //     (todo: any) =>
-      //       todo.id === todoId
-      //         ? { ...todo, title: title } // Update the todo that matches the ID
-      //         : todo // Keep other todos unchanged
-      //   );
 
-      //   setTodosList(updatedTodos); // Update local storage
-      // } else {
-      //   throw new Error("Failed to update todo");
-      // }
     } catch (error) {
       console.log(error);
     } finally {
@@ -78,8 +68,9 @@ export default function TodoEditDialog({
         </div>
         <DialogFooter>
           <Button
-            onClick={() => {
-              EditTodoAction(todoId, EdittedTodo);
+            onClick={async() => {
+             await EditTodoAction(todoId, EdittedTodo);
+             await EditTodos()
               onClose(); // Close the dialog after saving
             }}
             type="submit"
