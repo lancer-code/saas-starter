@@ -2,7 +2,7 @@ import {
   DropdownMenu,
   DropdownMenuTrigger,
 } from "@radix-ui/react-dropdown-menu";
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "../ui/button";
 import { Dot, DotIcon, Option, Settings2 } from "lucide-react";
 import {
@@ -22,7 +22,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "../ui/input";
 
-
 interface TodosOptionsProps {
   CompletedFun: () => void;
   DeleteFun: () => void;
@@ -36,12 +35,11 @@ function TodosOptions({
   todoId,
   title,
 }: TodosOptionsProps) {
-
- 
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <div>
-      <Dialog>
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Settings2 />
@@ -58,10 +56,11 @@ function TodosOptions({
                 </Button>
               </DropdownMenuItem>
               <DropdownMenuItem>
-              <DialogTrigger asChild>
-              <Button variant="ghost" className="text-[14px]">Edit</Button>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" className="text-[14px]">
+                    Edit
+                  </Button>
                 </DialogTrigger>
-                
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <Button
@@ -75,8 +74,13 @@ function TodosOptions({
             </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
-        <TodoEditDialog todoId={todoId} title={title} />
-        </Dialog>
+        <TodoEditDialog
+          todoId={todoId}
+          title={title}
+          isOpen={isOpen} // Pass the state directly
+          onClose={() => setIsOpen(false)} // Pass the function to close
+        />
+      </Dialog>
     </div>
   );
 }

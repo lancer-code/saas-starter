@@ -1,27 +1,65 @@
 "use client";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Input } from "../ui/input";
 import Link from "next/link";
 import { Button } from "../ui/button";
 import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
+import axios from "axios";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 
 function HeroSection() {
   const router = useRouter();
   const { userId } = useAuth();
+  const [isLoading, setisLoading] = useState(false);
+  const { toast } = useToast();
+  const [HeroPrompt, setHeroPrompt] = useState("")
+  const [generatedTodos, setgeneratedTodos] = useState([]);
 
-  const [Prompt, setPrompt] = useState("");
 
-  const getGeneratedTodos = () => {
-    //local storage prompt
-    localStorage.setItem("Hero-Prompt", Prompt);
+  const GenerateTodos = useCallback(async () => {
+    if (!HeroPrompt) return;
 
     if (!userId) {
       return router.push("/sign-in");
     }
 
-    return router.push("/dashboard");
-  };
+    try {
+      console.log("HeroPrompt",HeroPrompt)
+      setisLoading(true);
+      const res = await axios.post("/api/todos/generate-todos", {
+        prompt: HeroPrompt,
+      });
+
+      if (res.status != 200) {
+        throw new Error();
+      }
+      setgeneratedTodos(res.data.todos);
+      await saveGeneratedTodos();
+
+      return router.push("/dashboard");
+    } catch (error) {
+      console.log("GenerateTodos", error);
+
+      toast({
+        title: "Something went wrong",
+        description: "Failed to Generate, Please try again later",
+        variant: "destructive",
+      });
+    } finally {
+      setisLoading(false);
+    }
+  }, [HeroPrompt]);
+
+  const saveGeneratedTodos = useCallback(async () => {
+    try {
+      const res = await axios.post("api/todos/generate-todos", generatedTodos);
+      if (res.status != 200) {
+        throw new Error();
+      }
+    } catch (error) {}
+  }, [generatedTodos]);
 
   return (
     <section
@@ -122,7 +160,7 @@ function HeroSection() {
           <Input
             required
             placeholder="write what todos list you want"
-            onChange={(e) => setPrompt(e.target.value)}
+            onChange={(e) => setHeroPrompt(e.target.value)}
             className="
             rounded-full 
             w-full
@@ -155,7 +193,7 @@ function HeroSection() {
           "
           />
           <Link
-            href={"/"}
+            href={""}
             className="
             sm:absolute 
             md:right-[110px]
@@ -165,7 +203,8 @@ function HeroSection() {
           "
           >
             <Button
-              onClick={getGeneratedTodos}
+              disabled={isLoading}
+              onClick={GenerateTodos}
               className="
               rounded-full 
               w-full
@@ -192,7 +231,7 @@ function HeroSection() {
               animate-gradient
             "
             >
-              Create
+             {isLoading ? <Loader2 className="animate-spin ease-in"/>:"Create"}
             </Button>
           </Link>
         </div>

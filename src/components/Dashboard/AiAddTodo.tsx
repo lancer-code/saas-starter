@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
@@ -14,41 +15,37 @@ import { useToast } from "@/hooks/use-toast";
 import { useLocalStorage } from "usehooks-ts";
 
 export default function AiAddTodo() {
-  const [Prompt, setPrompt] = useState("");
   const [isLoading, setisLoading] = useState(false);
   const { toast } = useToast();
   const [inputPrompt, setinputPrompt] = useLocalStorage("input-prompt", "");
-  const [generateTodos, setgeneratedTodos] = useState([]);
+  const [generatedTodos, setgeneratedTodos] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
+  
 
   const GenerateTodos = useCallback(async () => {
-    if (!Prompt) return;
+    if (!inputPrompt) return;
 
     try {
+      console.log(inputPrompt)
       setisLoading(true);
       const res = await axios.post("/api/todos/generate-todos", {
-        prompt: Prompt,
+        prompt: inputPrompt,
       });
 
-      if (!res.ok) {
+      if (res.status != 200) {
         throw new Error();
       }
 
       setgeneratedTodos(res.data.todos);
       await saveGeneratedTodos();
-      setIsOpen(true);
-
-      setTimeout(() => {
-        setIsOpen(false);
-      }, 1000);
-
+      setIsOpen(false)
       return toast({
         title: "Success",
         description: "Todos Generated Successfully",
         variant: "default",
       });
     } catch (error) {
-      console.log("GenerateTodos", error);
+      console.log("GeneratedTodos", error);
 
       toast({
         title: "Something went wrong",
@@ -58,17 +55,20 @@ export default function AiAddTodo() {
     } finally {
       setisLoading(false);
     }
-  }, [Prompt]);
+  }, [inputPrompt]);
 
   const saveGeneratedTodos = useCallback(async () => {
     try {
-      const res = await axios.post("api/todos/generate-todos", generateTodos);
+      const res = await axios.post("api/todos/generate-todos", generatedTodos);
     } catch (error) {}
-  }, [generateTodos]);
+  }, [generatedTodos]);
 
-  useEffect(() => {
-    setPrompt(inputPrompt);
-  }, []);
+
+
+
+  const handleGenerate = useCallback(async () => {
+    await GenerateTodos();
+  }, [])
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -104,6 +104,7 @@ export default function AiAddTodo() {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px] mx-4">
         <DialogTitle hidden />
+        <DialogDescription />
         <div className="flex  justify-start flex-col">
           <h4 className="text-lg font-semibold leading-none tracking-tight mb-10">
             AI Todos Generator
@@ -113,10 +114,9 @@ export default function AiAddTodo() {
             <Label htmlFor="prompt">Write your Prompt</Label>
             <Textarea
               required
-              defaultValue={inputPrompt}
+              value={inputPrompt}
               disabled={isLoading}
               onChange={(e) => {
-                setPrompt(e.target.value);
                 setinputPrompt(e.target.value);
               }}
               className="h-[166px]"
@@ -147,7 +147,7 @@ export default function AiAddTodo() {
               border-none
               animate-gradient "
               disabled={isLoading}
-              onClick={GenerateTodos}
+              onClick={handleGenerate}
               type="submit"
             >
               {isLoading ? (

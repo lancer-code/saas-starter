@@ -1,7 +1,7 @@
 "use client";
 import AiAddTodo from "@/components/Dashboard/AiAddTodo";
 import TodosOptions from "@/components/Dashboard/TodosOptions";
-import { useDebounceCallback } from "usehooks-ts";
+import { useDebounceCallback, useLocalStorage } from "usehooks-ts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@clerk/nextjs";
@@ -11,61 +11,54 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 
 function Dashboard() {
-  const { userId } = useAuth();
-
-  const [Rerender, setRerender] = useState(false);
-  const [Todos, setTodos] = useState([
-    { todoId: "5456564", title: "Honda", compeleted: false },
-    { todoId: "54325", title: "Honda", compeleted: false },
-    { todoId: "54542345", title: "Honda", compeleted: false },
-  ]);
+  const [isLoading, setisLoading] = useState(false);
 
   const [newTodo, setNewTodo] = useState("");
   const [TotalTodos, setTotalTodos] = useState(0);
   const [RemainingTodos, setRemainingTodos] = useState(0);
   const [CompletedTodos, setCompletedTodos] = useState(0);
-
-  const CompletedTodoAction = useCallback(
-    async (todoId: string) => {
-      try {
-        setRerender(true);
-        const res = await axios.post("/api/todos/completed", { todoId });
-        if (res.status != 200) {
-          throw new Error();
-        }
-      } catch (error) {
-        console.log("CompletedTodo", error);
-      } finally {
-        setRerender(false);
-      }
-    },
+  const [todosList, setTodosList, removeGetTodos] = useLocalStorage(
+    "get-todos",
     []
   );
+  const [Todos, setTodos] = useState([]);
 
-  const DeleteTodoAction = useCallback(
-    async (todoId: string) => {
-      try {
-        setRerender(true);
-        const res = await axios.post("/api/todos/delete-todo", { todoId });
-        if (res.status != 200) {
-          throw new Error();
-        }
-        setTotalTodos(TotalTodos - 1);
-      } catch (error) {
-        console.log("DeleteTodo", error);
-      } finally {
-        setRerender(false);
+  const CompletedTodoAction = useCallback(async (todoId: string) => {
+    try {
+      setisLoading(true);
+      const res = await axios.post("/api/todos/completed", { todoId });
+      if (res.status != 200) {
+        throw new Error();
       }
-    },
-    []
-  );
+    } catch (error) {
+      console.log("CompletedTodo", error);
+    } finally {
+      setisLoading(false);
+    }
+  }, []);
+
+  const DeleteTodoAction = useCallback(async (todoId: string) => {
+    try {
+      setisLoading(true);
+      const res = await axios.post("/api/todos/delete-todo", { todoId });
+      if (res.status != 200) {
+        throw new Error();
+      }
+      setTotalTodos(TotalTodos - 1);
+    } catch (error) {
+      console.log("DeleteTodo", error);
+    } finally {
+      setisLoading(false);
+    }
+  }, []);
 
   const GetTodos = useCallback(async () => {
     try {
-      setRerender(true);
+      setisLoading(true);
       const todosList = await axios.get(
         `/api/todos/get-todos?search=${newTodo}`
       );
+      setTodosList(todosList.data.todos);
       setTodos(todosList.data.todos);
       setCompletedTodos(todosList.data.totalTodosCompleted);
       setRemainingTodos(todosList.data.totalTodosRemaining);
@@ -73,13 +66,13 @@ function Dashboard() {
     } catch (error) {
       console.log("GetTodos", error);
     } finally {
-      setRerender(false);
+      setisLoading(false);
     }
   }, [newTodo]);
 
   const AddTodo = useCallback(async () => {
     try {
-      setRerender(true);
+      setisLoading(true);
       const res = await axios.post("/api/todos/add-todo", {
         title: newTodo,
       });
@@ -87,26 +80,22 @@ function Dashboard() {
         throw new Error();
       }
       setTotalTodos(TotalTodos + 1);
-      setNewTodo("");
     } catch (error) {
       console.log("AddTodo", error);
     } finally {
-      setRerender(false);
+      setisLoading(false);
       setNewTodo("");
     }
   }, [newTodo]);
 
-  const SearchTodos = () => {
-    try {
-      setRerender(true);
-    } catch (error) {}
-  };
-
   const getTodos = useDebounceCallback(GetTodos, 300);
 
   useEffect(() => {
-    GetTodos()
-    console.log("UDe effect")
+    GetTodos();
+    console.log("UDe effect");
+    return () => {
+      removeGetTodos();
+    };
   }, [TotalTodos]);
 
   return (
@@ -134,7 +123,7 @@ function Dashboard() {
                 value={newTodo}
                 onChange={(e) => {
                   setNewTodo(e.target.value);
-                  getTodos()
+                  getTodos();
                 }}
                 placeholder="Search Todos"
                 className=" pl-7 text-lg h-16 rounded-full"
@@ -162,10 +151,15 @@ function Dashboard() {
 
               {/* Todos items list will be shown here */}
 
-             {Rerender ? <div className="flex flex-col justify-center items-center h-[200px]"><Loader2 className="animate-spin ease-in"/></div> :(<div className="flex justify-center mt-8 items-center flex-col w-full max-w-[850px]  mx-auto gap-3">
-                {Todos.map((todo) => (
-                  <div
-                    key={todo.todoId}
+              {isLoading ? (
+                <div className="flex flex-col justify-center items-center h-[200px]">
+                  <Loader2 className="animate-spin ease-in" />
+                </div>
+              ) : (
+                <div className="flex justify-center mt-8 items-center flex-col w-full max-w-[850px]  mx-auto gap-3">
+                  {Todos.map((todo) => (
+                    <div
+                      key={todo.todoId}
                     className={`h-[75px] flex justify-between items-center w-full px-6 
                     shadow-[0_4px_20px_rgba(0,0,0,0.15)] 
                     hover:shadow-[0_4px_20px_rgba(0,0,0,0.2)] 
@@ -176,36 +170,36 @@ function Dashboard() {
                     backdrop-blur-md 
                     border border-white/10 
                     transition-all duration-300`}
-                  >
-                    {/* Todo content here */}
-                    <div className="w-full flex justify-between items-center ">
-                      <div
-                        className={
-                          todo.compeleted
-                            ? "text-gray-400 line-through transition ease-in"
-                            : ""
-                        }
-                      >
-                        {todo.title}
-                      </div>
-                      <div>
-                        <TodosOptions
-                          CompletedFun={() => {
-                            CompletedTodoAction(todo.todoId);
-                            todo.compeleted = true;
-                          }}
-                          todoId={todo.todoId}
-                          title={todo.title}
-                          DeleteFun={() => {
-                            DeleteTodoAction(todo.todoId);
-                          }}
-                        />
+                    >
+                      {/* Todo content here */}
+                      <div className="w-full flex justify-between items-center ">
+                        <div
+                          className={
+                            todo.compeleted
+                              ? "text-gray-400 line-through transition ease-in"
+                              : ""
+                          }
+                        >
+                          {todo.title}
+                        </div>
+                        <div>
+                          <TodosOptions
+                            CompletedFun={() => {
+                              CompletedTodoAction(todo.todoId);
+                              todo.compeleted = true;
+                            }}
+                            todoId={todo.todoId}
+                            title={todo.title}
+                            DeleteFun={() => {
+                              DeleteTodoAction(todo.todoId);
+                            }}
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>)
-}
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

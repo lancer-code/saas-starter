@@ -9,14 +9,14 @@ export async function POST(request: NextRequest) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  const { generateTodo } = await request.json();
+  const { generatedTodo } = await request.json();
 
-  const transformedTodos = generateTodo.map(({ todoId, ...rest }) => ({
+  const transformedTodos = generatedTodo.map(({ todoId, ...rest }) => ({
     userId: userId, 
     ...rest,
   }));
 
-  console.log(transformedTodos);
+  console.log("transformedTodos",transformedTodos);
 
   try {
     const saveTodos = await prisma.todos.createMany({
