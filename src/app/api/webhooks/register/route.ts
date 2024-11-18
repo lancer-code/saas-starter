@@ -54,7 +54,11 @@ export async function POST(req: NextRequest) {
   // Do something with the payload
   // For this guide, you simply log the payload to the console
   const { id} = evt.data
-  const email = evt.data.email_addresses[0].email_address
+
+  if (evt.type === 'user.created' || evt.type === 'user.updated') {
+    const email = evt.data.email_addresses[0].email_address; 
+  
+ 
   
   const eventType = evt.type
   
@@ -62,7 +66,7 @@ export async function POST(req: NextRequest) {
 
     const newUser = await prisma.user.create({
       data: {
-        userId: id,
+        userId: id as string,
         email,
         isSubscribed: false,
         
@@ -70,5 +74,6 @@ export async function POST(req: NextRequest) {
     })
     
   }
+}
   return new Response('', { status: 200 })
 }
