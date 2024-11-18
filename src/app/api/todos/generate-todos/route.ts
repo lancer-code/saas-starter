@@ -5,6 +5,7 @@ import prisma from "../../../../../lib/prisma";
 
 export async function POST(request: NextRequest) {
   const { userId } = await auth();
+  const GEMINI_KEY = process.env.GEMINI_KEY as string
 
   if (!userId) {
     return new Response("Unauthorized", { status: 401 });
@@ -12,7 +13,7 @@ export async function POST(request: NextRequest) {
 
   const { prompt } = await request.json();
 
-  const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY as string);
+  const genAI = new GoogleGenerativeAI(GEMINI_KEY);
 
   const schema = {
     "type": "object",
