@@ -6,6 +6,7 @@ import prisma from "../../../../../lib/prisma";
 export async function POST(request: NextRequest) {
   const { userId } = await auth();
   const GEMINI_KEY = process.env.GEMINI_KEY as string
+  console.log(GEMINI_KEY)
 
   if (!userId) {
     return new Response("Unauthorized", { status: 401 });
