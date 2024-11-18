@@ -10,6 +10,13 @@ import axios from "axios";
 import React, { useCallback, useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 
+
+interface Todo {
+  todoId: string;
+  title: string;
+  compeleted: boolean;  // Note: there's a typo here, should be "completed"
+}
+
 function Dashboard() {
   const [isLoading, setisLoading] = useState(false);
 
@@ -157,20 +164,20 @@ function Dashboard() {
                 </div>
               ) : (
                 <div className="flex justify-center mt-8 items-center flex-col w-full max-w-[850px]  mx-auto gap-3">
-                  {todosList.map((todo) => (
+                  {todosList.map((todo: Todo) => (
                     <div
                       key={todo.todoId}
-                    className={`h-auto overflow-auto py-4 flex justify-between items-center w-full px-6 
-                    shadow-[0_4px_20px_rgba(0,0,0,0.15)] 
-                    hover:shadow-[0_4px_20px_rgba(0,0,0,0.2)] 
-                    hover:scale-105 
-                    hover:shadow-purple-500/30 
-                    rounded-2xl 
-                    bg-white/10 
-                    backdrop-blur-md 
-                    border border-white/10 
-                    transition-all duration-300`}
-                    >
+                      className={`h-auto overflow-auto py-4 flex justify-between items-center w-full px-6 
+                        shadow-[0_4px_20px_rgba(0,0,0,0.15)] 
+                        hover:shadow-[0_4px_20px_rgba(0,0,0,0.2)] 
+                        hover:scale-105 
+                        hover:shadow-purple-500/30 
+                        rounded-2xl 
+                        bg-white/10 
+                        backdrop-blur-md 
+                        border border-white/10 
+                        transition-all duration-300`}
+                      >
                       {/* Todo content here */}
                       <div className="w-full flex justify-between items-center ">
                         <div
