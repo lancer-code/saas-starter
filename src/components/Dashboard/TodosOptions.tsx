@@ -52,14 +52,14 @@ function TodosOptions({
                 <Button
                   variant={"ghost"}
                   onClick={CompletedFun}
-                  className=" text-[14px]"
+                  className="w-full text-[14px] text-left justify-start"
                 >
                   Completed
                 </Button>
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <DialogTrigger asChild>
-                  <Button variant="ghost" className="text-[14px]">
+                  <Button variant={"ghost"} className="w-full text-[14px] text-left justify-start">
                     Edit
                   </Button>
                 </DialogTrigger>
@@ -68,7 +68,7 @@ function TodosOptions({
                 <Button
                   variant={"ghost"}
                   onClick={DeleteFun}
-                  className=" text-[14px]"
+                  className="w-full text-[14px] text-left justify-start"
                 >
                   Delete
                 </Button>

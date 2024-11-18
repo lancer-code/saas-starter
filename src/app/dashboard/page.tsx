@@ -118,7 +118,7 @@ function Dashboard() {
         </h1>
         <div className="flex flex-col justify-center items-center ">
           <div className="w-96 mx-auto md:w-[600px] lg:w-[700px]">
-            <div className="flex items-center rounded-lg gap-3 shadow-md bg-white justify-center px-5 py-10">
+            <div className="flex w-full flex-col md:flex-row items-center rounded-lg gap-3 shadow-md bg-white justify-center px-5 py-10">
               <Input
                 value={newTodo}
                 onChange={(e) => {
@@ -130,7 +130,7 @@ function Dashboard() {
               />
               <Button
                 onClick={AddTodo}
-                className="w-12 h-12 md:w-16  rounded-full"
+                className="w-full h-12 md:w-16  rounded-full"
               >
                 <span className="text-[24px] mb-1">+</span>
               </Button>
@@ -138,7 +138,7 @@ function Dashboard() {
               <AiAddTodo />
             </div>
 
-            <div className="w-96 shadow-md mx-auto md:w-[600px] lg:w-[700px] mt-9 h-[500px] rounded-md bg-white px-5 py-10 overflow-y-auto max-h-[600px]">
+            <div className="w-96 shadow-md mx-auto md:w-[600px] lg:w-[700px] mt-9 h-[500px] rounded-md .custom-scrollbar bg-white px-5 py-10 overflow-y-auto max-h-[600px]">
               <div className="flex justify-between">
                 <p className="text-[18px] font-medium">Total: {TotalTodos}</p>
                 <p className="text-[18px] font-medium">
@@ -160,7 +160,7 @@ function Dashboard() {
                   {todosList.map((todo) => (
                     <div
                       key={todo.todoId}
-                    className={`h-[75px] flex justify-between items-center w-full px-6 
+                    className={`h-auto overflow-auto py-4 flex justify-between items-center w-full px-6 
                     shadow-[0_4px_20px_rgba(0,0,0,0.15)] 
                     hover:shadow-[0_4px_20px_rgba(0,0,0,0.2)] 
                     hover:scale-105 

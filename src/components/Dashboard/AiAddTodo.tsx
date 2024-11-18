@@ -62,7 +62,7 @@ export default function AiAddTodo() {
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button
-          className="w-12 h-12 text-[18px] md:w-16  rounded-full 
+          className="w-full h-12 text-[18px] md:w-16  rounded-full 
               sm:w-auto
               bg-gradient-to-r 
               from-[#4F46E5] 
@@ -90,7 +90,7 @@ export default function AiAddTodo() {
           Ai
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] mx-4">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogTitle hidden />
         <DialogDescription />
         <div className="flex  justify-start flex-col">

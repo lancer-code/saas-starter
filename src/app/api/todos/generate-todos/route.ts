@@ -1,7 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import axios from "axios";
 import prisma from "../../../../../lib/prisma";
 
 export async function POST(request: NextRequest) {
@@ -13,7 +12,7 @@ export async function POST(request: NextRequest) {
 
   const { prompt } = await request.json();
 
-  const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY as string);
 
   const schema = {
     "type": "object",
@@ -51,7 +50,7 @@ export async function POST(request: NextRequest) {
         topK: 40,
         maxOutputTokens: 8192,
         responseMimeType: "application/json",
-        responseSchema: schema,
+        responseSchema: schema as object,
       },
     });
 

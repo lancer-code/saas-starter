@@ -1,5 +1,5 @@
 "use client";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Input } from "../ui/input";
 import Link from "next/link";
 import { Button } from "../ui/button";
@@ -8,59 +8,55 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { useLocalStorage } from "usehooks-ts";
 
 function HeroSection() {
   const router = useRouter();
   const { userId } = useAuth();
   const [isLoading, setisLoading] = useState(false);
   const { toast } = useToast();
-  const [HeroPrompt, setHeroPrompt] = useState("")
-  const [generatedTodos, setgeneratedTodos] = useState([]);
-
+  const [HeroPrompt, setHeroPrompt] = useLocalStorage("Hero-Prompt", "");
 
   const GenerateTodos = useCallback(async () => {
     if (!HeroPrompt) return;
 
+    setisLoading(true);
     if (!userId) {
-      return router.push("/sign-in");
+      return router.replace("/sign-in");
     }
 
-    try {
-      console.log("HeroPrompt",HeroPrompt)
-      setisLoading(true);
-      const res = await axios.post("/api/todos/generate-todos", {
-        prompt: HeroPrompt,
-      });
+    if (HeroPrompt) {
+      try {
+        const res = await axios.post("/api/todos/generate-todos", {
+          prompt: HeroPrompt,
+        });
 
-      if (res.status != 200) {
-        throw new Error();
+        if (res.status != 200) {
+          throw new Error();
+        }
+
+        return router.push("/dashboard");
+      } catch (error) {
+        console.log("GenerateTodos", error);
+
+        toast({
+          title: "Something went wrong",
+          description: "Failed to Generate, Please try again later",
+          variant: "destructive",
+        });
+      } finally {
+        setisLoading(false);
       }
-      setgeneratedTodos(res.data.todos);
-      await saveGeneratedTodos();
-
-      return router.push("/dashboard");
-    } catch (error) {
-      console.log("GenerateTodos", error); 
-      
-
-      toast({
-        title: "Something went wrong",
-        description: "Failed to Generate, Please try again later",
-        variant: "destructive",
-      });
-    } finally {
-      setisLoading(false);
     }
   }, [HeroPrompt]);
 
-  const saveGeneratedTodos = useCallback(async () => {
-    try {
-      const res = await axios.post("api/todos/generate-todos", generatedTodos);
-      if (res.status != 200) {
-        throw new Error();
+  useEffect(() => {
+    async () => {
+      if (HeroPrompt) {
+        await GenerateTodos();
       }
-    } catch (error) {}
-  }, [generatedTodos]);
+    };
+  }, []);
 
   return (
     <section
@@ -140,6 +136,13 @@ function HeroSection() {
             AI
           </span>
         </h1>
+        {userId ? (
+          <Link href={"/dashboard"}>
+            <Button size={"lg"}>Got to Dashboard</Button>
+          </Link>
+        ) : (
+          ""
+        )}
 
         {/* Input and Button Container */}
         <div
@@ -159,6 +162,7 @@ function HeroSection() {
       "
         >
           <Input
+            value={HeroPrompt}
             required
             placeholder="write what todos list you want"
             onChange={(e) => setHeroPrompt(e.target.value)}
@@ -193,20 +197,15 @@ function HeroSection() {
             
           "
           />
-          <Link
-            href={""}
-            className="
-            sm:absolute 
-            md:right-[110px]
-            sm:right-[30px]
-            w-full
-            sm:w-auto
-          "
-          >
+         
             <Button
               disabled={isLoading}
               onClick={GenerateTodos}
               className="
+              sm:absolute 
+            md:right-[110px]
+            sm:right-[30px]
+    
               rounded-full 
               w-full
               sm:w-auto
@@ -232,9 +231,13 @@ function HeroSection() {
               animate-gradient
             "
             >
-             {isLoading ? <Loader2 className="animate-spin ease-in"/>:"Create"}
+              {isLoading ? (
+                <Loader2 className="animate-spin ease-in" />
+              ) : (
+                "Create"
+              )}
             </Button>
-          </Link>
+       
         </div>
 
         {/* Optional: Add a subtitle or description */}

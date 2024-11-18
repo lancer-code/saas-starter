@@ -23,7 +23,7 @@ function Navbar() {
         <div>
           <Image src={"next.svg"} width={125} height={50} alt="Next Logo" />
         </div>
-        <div>
+        {/* <div>
           <ul className="flex justify-center items-start font-medium gap-4 text-lg">
             <li>
               <Link href={"/"}>Home</Link>
@@ -38,7 +38,7 @@ function Navbar() {
               <Link href={"/"}>Contact us</Link>
             </li>
           </ul>
-        </div>
+        </div> */}
         {userId ? (
           <div>
             <UserButton />
