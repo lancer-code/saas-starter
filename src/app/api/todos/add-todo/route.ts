@@ -12,7 +12,6 @@ export async function POST(request: NextRequest) {
     
     const { title } = await request.json();
     
-    console.log("Auth Chek Add", userId, title)
     try {
       const user = await prisma.user.findUnique({
         where: {

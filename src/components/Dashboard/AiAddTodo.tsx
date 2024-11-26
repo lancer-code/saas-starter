@@ -36,8 +36,6 @@ export default function AiAddTodo() {
         prompt: inputPrompt,
       });
 
-      console.log("Genrated Todos: ", res);
-
       if (res.status != 200) {
         throw new Error();
       }
