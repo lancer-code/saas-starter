@@ -136,6 +136,7 @@ function Dashboard() {
                 className=" pl-7 text-lg h-16 rounded-full"
               />
               <Button
+              disabled={isLoading}
                 onClick={AddTodo}
                 className="w-full h-12 md:w-16  rounded-full"
               >
