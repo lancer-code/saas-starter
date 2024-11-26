@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
 
   if (!GEMINI_KEY) {
       return NextResponse.json(
-          { message: "Missing API key" },
+          { message: "Missing GEMINI API key" },
           { status: 500 }
       );
   }
