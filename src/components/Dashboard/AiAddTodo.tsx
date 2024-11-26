@@ -13,12 +13,17 @@ import { Loader2 } from "lucide-react";
 import axios from "axios";
 import { useToast } from "@/hooks/use-toast";
 import { useLocalStorage } from "usehooks-ts";
+import { useGenerateTodos } from "@/hooks/use-generatedTodos";
 
 export default function AiAddTodo() {
   const [isLoading, setisLoading] = useState(false);
+  const { progress, generateTodos } = useGenerateTodos();
   const { toast } = useToast();
   const [inputPrompt, setinputPrompt] = useLocalStorage("input-prompt", "");
-  const [aiGeneratedTodos, setaiGeneratedTodos] = useLocalStorage("ai-Generated-Todos", false);
+  const [aiGeneratedTodos, setaiGeneratedTodos] = useLocalStorage(
+    "ai-Generated-Todos",
+    false
+  );
   const [isOpen, setIsOpen] = useState(false);
 
   const GenerateTodos = async () => {
@@ -31,12 +36,12 @@ export default function AiAddTodo() {
         prompt: inputPrompt,
       });
 
-      console.log("Genrated Todos: ", res)
+      console.log("Genrated Todos: ", res);
 
       if (res.status != 200) {
         throw new Error();
       }
-      aiGeneratedTodos ? setaiGeneratedTodos(false) : setaiGeneratedTodos(true)
+      aiGeneratedTodos ? setaiGeneratedTodos(false) : setaiGeneratedTodos(true);
       setIsOpen(false);
       return toast({
         title: "Success",
@@ -56,9 +61,7 @@ export default function AiAddTodo() {
     }
   };
 
-  const handleGenerate = async () => {
-    await GenerateTodos();
-  };
+
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -105,7 +108,7 @@ export default function AiAddTodo() {
             <Textarea
               required
               value={inputPrompt}
-              disabled={isLoading}
+              disabled={progress.status === "processing"}
               onChange={(e) => {
                 setinputPrompt(e.target.value);
               }}
@@ -136,8 +139,8 @@ export default function AiAddTodo() {
               hover:scale-105
               border-none
               animate-gradient "
-              disabled={isLoading}
-              onClick={handleGenerate}
+              disabled={progress.status === "processing"}
+              onClick={GenerateTodos}
               type="submit"
             >
               {isLoading ? (
@@ -146,6 +149,28 @@ export default function AiAddTodo() {
                 "Create Todos"
               )}
             </Button>
+
+            {/* Results Display */}
+            {progress.status === "processing" && (
+              <div className="mt-4">
+                <p>{progress.message}</p>
+                {progress.progress !== undefined && (
+                  <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div
+                      className="bg-blue-600 h-2.5 rounded-full"
+                      style={{ width: `${progress.progress}%` }}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Error Display */}
+            {progress.status === "error" && (
+              <div className="mt-4 p-4 bg-red-100 text-red-700 rounded">
+                {progress.message}
+              </div>
+            )}
           </div>
         </div>
       </DialogContent>

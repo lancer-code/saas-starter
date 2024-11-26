@@ -3,117 +3,195 @@ import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import prisma from "../../../../../lib/prisma";
 
+// Define TypeScript interfaces for better type safety
+interface Todo {
+    title: string;
+    userId: string;
+}
+
+interface GeminiResponse {
+    todos: Todo[];
+}
+
+interface ProgressResponse {
+    status: string;
+    message: string;
+    progress?: number;
+    data?: Todo[];
+}
+
 export async function POST(request: NextRequest) {
-  const { userId } = await auth();
-  const GEMINI_KEY = process.env.GEMINI_KEY as string;
+    // Initialize response encoder for streaming
+    const encoder = new TextEncoder();
+    
+    // Set up response headers for streaming
+    const headers = new Headers({
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+    });
 
-  if (!userId) {
-      return NextResponse.json(
-          { message: "Unauthorized" },
-          { status: 401 }
-      );
-  }
+    // Create a transform stream for handling the response
+    const stream = new TransformStream();
+    const writer = stream.writable.getWriter();
 
-  if (!GEMINI_KEY) {
-      return NextResponse.json(
-          { message: "Missing GEMINI API key" },
-          { status: 500 }
-      );
-  }
+    // Helper function to send progress updates
+    const sendProgress = async (data: ProgressResponse) => {
+        await writer.write(
+            encoder.encode(JSON.stringify(data) + '\n')
+        );
+    };
 
-  const schema = {
-    type: "object",
-    properties: {
-      todos: {
-        type: "array",
-        items: {
-          type: "object",
-          properties: {
-            title: {
-              type: "string",
-            },
-            userId: {
-              type: "string",
-            },
-          },
-          required: ["title", "userId"],
-        },
-      },
-    },
-    required: ["todos"],
-  };
+    // Process the request in an async context
+    (async () => {
+        try {
+            // Authentication check
+            const { userId } = await auth();
+            if (!userId) {
+                await sendProgress({
+                    status: 'error',
+                    message: 'Unauthorized access'
+                });
+                return;
+            }
 
-  try {
-      const { prompt } = await request.json();
-      
-      if (!prompt) {
-          return NextResponse.json(
-              { message: "Prompt is required" },
-              { status: 400 }
-          );
-      }
+            // API key validation
+            const GEMINI_KEY = process.env.GEMINI_KEY;
+            if (!GEMINI_KEY) {
+                await sendProgress({
+                    status: 'error',
+                    message: 'Missing API configuration'
+                });
+                return;
+            }
 
-      const genAI = new GoogleGenerativeAI(GEMINI_KEY);
-      const model = genAI.getGenerativeModel({
-          model: "gemini-1.5-pro",
-          generationConfig: {
-              temperature: 1,
-              topP: 0.95,
-              topK: 40,
-              maxOutputTokens: 8192,
-              responseMimeType: "application/json",
-              responseSchema: schema as object,
-          },
-      });
+            // Extract prompt from request
+            const { prompt } = await request.json();
+            if (!prompt) {
+                await sendProgress({
+                    status: 'error',
+                    message: 'Prompt is required'
+                });
+                return;
+            }
 
-      // Generate content with better error handling
-      let generatedTodos;
-      try {
-          const result = await model.generateContent(`
-              This is a todo application which user used to create and manage their todos, 
-              the user will give prompts like make list of things that should pack before going to travel, etc. 
-              so your job is to generate list of todos and in userId out this id ${userId} there in each todo. 
-              Break the list in separated short todos to display them at the front end. 
-              Below is the prompt that is typed by the user.
-              
-              User Prompt: ${prompt}
-          `);
+            // Initialize Gemini AI
+            await sendProgress({
+                status: 'processing',
+                message: 'Initializing AI model...'
+            });
 
-          generatedTodos = JSON.parse(result.response.text());
-      } catch (error) {
-          console.error("Error generating/parsing AI response:", error);
-          return NextResponse.json(
-              { message: "Error generating todos" },
-              { status: 500 }
-          );
-      }
+            const genAI = new GoogleGenerativeAI(GEMINI_KEY);
+            const model = genAI.getGenerativeModel({
+                model: "gemini-1.5-pro",
+                generationConfig: {
+                    temperature: 1,
+                    topP: 0.95,
+                    topK: 40,
+                    maxOutputTokens: 8192,
+                },
+            });
 
-      // Save todos with better error handling
-      try {
-          const saveTodos = await prisma.todos.createMany({
-              data: generatedTodos.todos,
-          });
+            // Define the schema for structured output
+            const schema = {
+                type: "object",
+                properties: {
+                    todos: {
+                        type: "array",
+                        items: {
+                            type: "object",
+                            properties: {
+                                title: { type: "string" },
+                                userId: { type: "string" },
+                            },
+                            required: ["title", "userId"],
+                        },
+                    },
+                },
+                required: ["todos"],
+            };
 
-          if (!saveTodos) {
-              throw new Error("Failed to save todos to database");
-          }
+            // Generate todos using Gemini
+            await sendProgress({
+                status: 'processing',
+                message: 'Generating todos...'
+            });
 
-          return NextResponse.json(
-              { todos: generatedTodos.todos },
-              { status: 200 }
-          );
-      } catch (error) {
-          console.error("Database error:", error);
-          return NextResponse.json(
-              { message: "Error saving todos to database" },
-              { status: 500 }
-          );
-      }
-  } catch (error) {
-      console.error("General error:", error);
-      return NextResponse.json(
-          { message: "Internal Server Error" },
-          { status: 500 }
-      );
-  }
+            const result = await model.generateContent([
+                {
+                    text: `Generate a JSON response with todos based on this prompt: "${prompt}".
+                           Each todo should have a title and userId: "${userId}".
+                           Keep todos short and actionable.
+                           Format the response as valid JSON matching this schema: ${JSON.stringify(schema)}
+                           Example format: {"todos": [{"title": "Pack toothbrush", "userId": "${userId}"}]}`
+                }
+            ]);
+
+            // Parse and validate the Gemini response
+            let generatedTodos: GeminiResponse;
+            try {
+                const responseText = result.response.text();
+                // Find the JSON object in the response
+                const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+                if (!jsonMatch) {
+                    throw new Error('No valid JSON found in response');
+                }
+                generatedTodos = JSON.parse(jsonMatch[0]);
+
+                // Validate the response structure
+                if (!generatedTodos.todos || !Array.isArray(generatedTodos.todos)) {
+                    throw new Error('Invalid response structure');
+                }
+            } catch (error) {
+                await sendProgress({
+                    status: 'error',
+                    message: 'Failed to parse AI response'
+                });
+                return;
+            }
+
+            // Save todos to database in chunks
+            await sendProgress({
+                status: 'processing',
+                message: 'Saving todos to database...'
+            });
+
+            const chunkSize = 5;
+            const todos = generatedTodos.todos;
+
+            for (let i = 0; i < todos.length; i += chunkSize) {
+                const chunk = todos.slice(i, i + chunkSize);
+                await prisma.todos.createMany({
+                    data: chunk,
+                });
+
+                // Send progress update
+                await sendProgress({
+                    status: 'processing',
+                    message: 'Saving todos...',
+                    progress: Math.round(((i + chunk.length) / todos.length) * 100)
+                });
+            }
+
+            // Send final success response
+            await sendProgress({
+                status: 'completed',
+                message: 'Successfully generated and saved todos',
+                data: todos
+            });
+
+        } catch (error) {
+            // Handle any unexpected errors
+            await sendProgress({
+                status: 'error',
+                message: error instanceof Error ? error.message : 'An unexpected error occurred'
+            });
+        } finally {
+            // Always close the writer
+            await writer.close();
+        }
+    })().catch(console.error);
+
+    // Return the stream response
+    return new Response(stream.readable, { headers });
 }
